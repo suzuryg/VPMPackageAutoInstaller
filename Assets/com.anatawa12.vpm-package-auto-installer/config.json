@@ -1,8 +1,11 @@
 {
   "vpmRepositories": [
-    "https://vpm.anatawa12.com/vpm.json"
+    "https://suzuryg.github.io/vpm-repos/vpm.json",
+    "https://vpm.nadena.dev/vpm.json"
   ],
   "vpmDependencies": {
-    "com.anatawa12.vpm-package-auto-installer.creator": "^0.2.0"
-  }
+    "jp.suzuryg.face-emo":  "^1.0.0",
+    "nadena.dev.modular-avatar":  "^1.4.5"
+  },
+  "includePrerelease": false
 }
