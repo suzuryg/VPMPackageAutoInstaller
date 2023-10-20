@@ -131,7 +131,7 @@ namespace Anatawa12.VpmPackageAutoInstaller
             catch (Exception e)
             {
                 Debug.LogError(e);
-                EditorUtility.DisplayDialog("ERROR", "Error installing packages", "ok");
+                EditorUtility.DisplayDialog("ERROR", Localization.Error_Unknown(), "OK");
                 return false;
             }
             finally
@@ -186,9 +186,9 @@ namespace Anatawa12.VpmPackageAutoInstaller
             {
                 if (!IsNoPrompt())
                     EditorUtility.DisplayDialog("ERROR!",
-                        "Installing package failed due to conflicts:\n" +
+                        $"{Localization.Error_Conflict()}\n" +
                         e.Message + "\n\n" +
-                        "Please see console for more details", "OK");
+                        Localization.SeeConsole(), "OK");
                 Debug.LogException(e);
                 return false;
             }
@@ -196,14 +196,14 @@ namespace Anatawa12.VpmPackageAutoInstaller
             if (request.locked().Count == 0)
             {
                 if (!IsNoPrompt())
-                    EditorUtility.DisplayDialog("Nothing TO DO!", "All Packages are Installed!", "OK");
+                    EditorUtility.DisplayDialog("Nothing TO DO!", Localization.NothingToDo(), "OK");
                 return false;
             }
 
             ShowProgress("Prompting to user...", Progress.Prompting);
             if (!IsNoPrompt())
             {
-                var confirmMessage = new StringBuilder("You're installing the following packages:");
+                var confirmMessage = new StringBuilder(Localization.Confirm_Packages());
 
                 foreach (var (name, version) in 
                          request.locked().Select(x => (Name: x.name(), Version: x.version()))
@@ -213,7 +213,7 @@ namespace Anatawa12.VpmPackageAutoInstaller
 
                 if (env.PendingRepositories.Count != 0)
                 {
-                    confirmMessage.Append("\n\nThis will add following repositories:");
+                    confirmMessage.Append($"\n\n{Localization.Confirm_Repositories()}");
                     foreach (var (_, url) in env.PendingRepositories)
                         // ReSharper disable once PossibleNullReferenceException
                         confirmMessage.Append('\n').Append(url);
@@ -221,19 +221,19 @@ namespace Anatawa12.VpmPackageAutoInstaller
 
                 if (request.legacy_folders().Count != 0 || request.legacy_files().Count != 0)
                 {
-                    confirmMessage.Append("\n\nYou're also deleting the following files/folders:");
+                    confirmMessage.Append($"\n\n{Localization.Confirm_LegacyFolders()}");
                     foreach (var path in request.legacy_folders().Concat(request.legacy_files()))
                         confirmMessage.Append('\n').Append(path);
                 }
 
                 if (request.legacy_packages().Count != 0)
                 {
-                    confirmMessage.Append("\n\nYou're also deleting the following legacy Packages:");
+                    confirmMessage.Append($"\n\n{Localization.Confirm_LegacyPackages()}");
                     foreach (var name in request.legacy_packages())
                         confirmMessage.Append("\n- ").Append(name);
                 }
 
-                if (!EditorUtility.DisplayDialog("Confirm", confirmMessage.ToString(), "Install", "Cancel"))
+                if (!EditorUtility.DisplayDialog("Confirm", confirmMessage.ToString(), Localization.Install(), Localization.Cancel()))
                     return false;
             }
 
