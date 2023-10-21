@@ -31,6 +31,26 @@ namespace Anatawa12.VpmPackageAutoInstaller
             }
         } 
 
+        public static string CheckConflicts()
+        {
+            switch (GetLocale())
+            {
+                case Locale.ja_JP: return "インストールを続行した場合、一部のパッケージに不具合が発生する可能性があります。\n" +
+                        "インストールを中断し、VCCを開いて下記のパッケージを更新してください：";
+                default: return "If you continue with the installation, you may encounter problems with some packages.\n" +
+                        "Please stop the installation, open VCC and update the following packages:";
+            }
+        }
+
+        public static string CheckContinue()
+        {
+            switch (GetLocale())
+            {
+                case Locale.ja_JP: return "強制的にインストールを続行する場合は、「続行」を押してください。";
+                default: return "To force the installation to continue, press \"Continue\".";
+            }
+        }
+
         public static string NothingToDo()
         {
             switch (GetLocale())
@@ -75,6 +95,24 @@ namespace Anatawa12.VpmPackageAutoInstaller
                 default: return "You're also deleting the following legacy Packages:";
             }
         } 
+
+        public static string Stop()
+        {
+            switch (GetLocale())
+            {
+                case Locale.ja_JP: return "中断";
+                default: return "Stop";
+            }
+        }
+
+        public static string Continue()
+        {
+            switch (GetLocale())
+            {
+                case Locale.ja_JP: return "続行";
+                default: return "Continue";
+            }
+        }
 
         public static string Install()
         {

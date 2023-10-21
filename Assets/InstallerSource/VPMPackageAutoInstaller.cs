@@ -181,6 +181,32 @@ namespace Anatawa12.VpmPackageAutoInstaller
             try
             {
                 request = await unityProject.add_package_request(env, dependencies, true, includePrerelease);
+
+                // check conflicts
+                var conflicts = request.conflicts();
+                var conflictingPackages = new HashSet<string>();
+                if (!(conflicts is null))
+                {
+                    foreach (var packages in conflicts.Values)
+                    {
+                        foreach (var package in packages)
+                        {
+                            conflictingPackages.Add(package);
+                        }
+                    }
+                }
+
+                if (conflictingPackages.Any())
+                {
+                    var message = Localization.CheckConflicts()
+                        + "\n\n"
+                        + string.Join("\n", conflictingPackages.OrderBy(x => x))
+                        + "\n\n"
+                        + Localization.CheckContinue();
+
+                    var isStopped = EditorUtility.DisplayDialog("Conflicts", message, Localization.Stop(), Localization.Continue());
+                    if (isStopped) { return false; }
+                }
             }
             catch (VrcGet.VrcGetException e)
             {
