@@ -80,6 +80,7 @@ namespace Anatawa12.VrcGet
         [NotNull] public string name { get; }
         [NotNull] public Version version { get; }
         [NotNull] public string url { get; }
+        [CanBeNull] public PartialUnityVersion unity;
         [NotNull] public Dictionary<string, VersionRange> vpm_dependencies { get; }
         [NotNull] public Dictionary<string, string> legacy_folders { get; }
         [NotNull] public Dictionary<string, string> legacy_files { get; }
@@ -91,6 +92,8 @@ namespace Anatawa12.VrcGet
             version = Version.Parse(Json.Get("version", JsonType.String));
             name = Json.Get("name", JsonType.String);
             url = Json.Get("url", JsonType.String, true) ?? "";
+            var unity_str = Json.Get("unity", JsonType.String, true);
+            unity = unity_str == null ? null : PartialUnityVersion.parse(unity_str);
             vpm_dependencies = Json.Get("vpmDependencies", JsonType.Obj, true)
                                   ?.ToDictionary(x => x.Item1, x => VersionRange.Parse((string)x.Item2))
                               ?? new Dictionary<string, VersionRange>();
@@ -106,19 +109,54 @@ namespace Anatawa12.VrcGet
         }
     }
 
+    internal class PartialUnityVersion : IComparable<PartialUnityVersion>
+    {
+        public readonly ushort major;
+        public readonly byte minor;
+
+        private PartialUnityVersion(ushort major, byte minor)
+        {
+            this.major = major;
+            this.minor = minor;
+        }
+
+        public static PartialUnityVersion parse(string unityStr)
+        {
+            if (unityStr.Contains('.'))
+            {
+                var pair = unityStr.Split(new[] { '.' }, 2);
+                return new PartialUnityVersion( ushort.Parse(pair[0].Trim()), byte.Parse(pair[1].Trim()));
+            }
+            else
+            {
+                return new PartialUnityVersion(ushort.Parse(unityStr.Trim()), 0);
+            }
+        }
+
+        // VPAI
+        public int CompareTo(PartialUnityVersion other)
+        {
+            if (ReferenceEquals(this, other)) return 0;
+            if (ReferenceEquals(null, other)) return 1;
+            var majorComparison = major.CompareTo(other.major);
+            if (majorComparison != 0) return majorComparison;
+            return minor.CompareTo(other.minor);
+        }
+    }
+
     #endregion
 
     #region setting
 
     class UserRepoSetting
     {
-        [NotNull] public string local_path { get; set; }
+        [NotNull] public Path local_path { get; set; }
         [CanBeNull] public string name { get; set; }
         [CanBeNull] public string url { get; set; }
         [CanBeNull] public string id { get; set; }
         [NotNull] public Dictionary<string, string> headers { get; set; }
 
-        public UserRepoSetting([NotNull] string localPath, [CanBeNull] string name, [CanBeNull] string url, string id)
+        public UserRepoSetting([NotNull] Path localPath, [CanBeNull] string name, [CanBeNull] string url, string id)
         {
             local_path = localPath ?? throw new ArgumentNullException(nameof(localPath));
             this.name = name;
@@ -129,7 +167,7 @@ namespace Anatawa12.VrcGet
 
         public UserRepoSetting(JsonObj json)
         {
-            local_path = json.Get("localPath", JsonType.String);
+            local_path = new Path(json.Get("localPath", JsonType.String));
             name = json.Get("name", JsonType.String, true);
             url = json.Get("url", JsonType.String, true);
             id = json.Get("id", JsonType.String, true);
@@ -139,7 +177,7 @@ namespace Anatawa12.VrcGet
         public JsonObj ToJson()
         {
             var result =  new JsonObj();
-            result.Add("localPath", local_path);
+            result.Add("localPath", local_path.AsString);
             if (name != null) result.Add("name", name);
             if (url != null) result.Add("url", url);
             if (id != null) result.Add("id", id);
