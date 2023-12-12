@@ -17,10 +17,10 @@ namespace Anatawa12.VrcGet
     internal static class AddPackage
     {
         public static async Task add_package(
-            Path global_dir,
+            string global_dir,
             HttpClient http,
             PackageInfo package,
-            Path target_packages_folder
+            string target_packages_folder
         )
         {
             if (package.is_remote())
@@ -35,21 +35,18 @@ namespace Anatawa12.VrcGet
         }
 
         static async Task add_remote_package(
-            Path global_dir,
+            string global_dir,
             HttpClient http,
             PackageJson package,
             IDictionary<string, string> headers,
-            Path target_packages_folder
+            string target_packages_folder
         )
         {
             var zip_file_name = $"vrc-get-{package.name}-{package.version}.zip";
-            var zip_path = global_dir
-                .joined("Repos")
-                .joined(package.name)
-                .joined(zip_file_name);
-            await create_dir_all(zip_path.parent());
-            var sha_path = zip_path.with_extension($"zip.sha256");
-            var dest_folder = target_packages_folder.join(package.name);
+            var zip_path = Path.Combine(global_dir, "Repos", package.name, zip_file_name);
+            await create_dir_all(Path.GetDirectoryName(zip_path));
+            var sha_path = $"{zip_path}.sha256";
+            var dest_folder = Path.Combine(target_packages_folder, package.name);
 
             // TODO: set sha256 when zipSHA256 is documented
             var zip_file = await try_cache(zip_path, sha_path, null);
@@ -68,7 +65,7 @@ namespace Anatawa12.VrcGet
 
             // extract zip file
             using (var archive = new ZipArchive(zip_file, ZipArchiveMode.Read, false))
-                archive.ExtractToDirectory(dest_folder.AsString);
+                archive.ExtractToDirectory(dest_folder);
         }
 
         /// Try to load from the zip file
@@ -87,7 +84,7 @@ namespace Anatawa12.VrcGet
         /// 
         /// ```
         [ItemCanBeNull]
-        static async Task<FileStream> try_cache([NotNull] Path zip_path, [NotNull] Path sha_path,
+        static async Task<FileStream> try_cache([NotNull] string zip_path, [NotNull] string sha_path,
             [CanBeNull] string sha256)
         {
 
@@ -95,8 +92,8 @@ namespace Anatawa12.VrcGet
             FileStream cache_file = null;
             try
             {
-                cache_file = File.OpenRead(zip_path.AsString);
-                using (var sha_file = File.OpenRead(sha_path.AsString))
+                cache_file = File.OpenRead(zip_path);
+                using (var sha_file = File.OpenRead(sha_path))
                 {
                     var buf = new byte[256 / 8];
                     await sha_file.ReadExactAsync(buf);
@@ -189,8 +186,8 @@ namespace Anatawa12.VrcGet
         static async Task<FileStream> download_zip(
             [CanBeNull] HttpClient http,
             [NotNull] IDictionary<String, String> headers,
-            [NotNull] Path zip_path,
-            [NotNull] Path sha_path,
+            [NotNull] string zip_path,
+            [NotNull] string sha_path,
             [NotNull] string zip_file_name,
             [NotNull] string url
         )
@@ -202,7 +199,7 @@ namespace Anatawa12.VrcGet
 
             try
             {
-                cache_file = File.Open(zip_path.AsString, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                cache_file = File.Open(zip_path, FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 cache_file.Position = 0;
 
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -224,7 +221,7 @@ namespace Anatawa12.VrcGet
                 cache_file.Position = 0;
 
                 // write SHA file
-                await WriteAllText(sha_path, $"{to_hex(hash)} {zip_file_name}\n");
+                File.WriteAllText(sha_path, $"{to_hex(hash)} {zip_file_name}\n");
 
                 return result = cache_file;
             }
@@ -254,10 +251,10 @@ namespace Anatawa12.VrcGet
 
         // no check_path
 
-        static async Task add_local_package([NotNull] Path package, [NotNull] string name,
-            [NotNull] Path target_packages_folder)
+        static async Task add_local_package([NotNull] string package, [NotNull] string name,
+            [NotNull] string target_packages_folder)
         {
-            var dest_folder = target_packages_folder.join(name);
+            var dest_folder = Path.Combine(target_packages_folder, name);
             try
             {
                 await remove_dir_all(dest_folder);
@@ -270,7 +267,7 @@ namespace Anatawa12.VrcGet
             await copy_recursive(package, dest_folder);
         }
 
-        static async Task copy_recursive(Path src_dir, Path dst_dir)
+        static async Task copy_recursive(string src_dir, string dst_dir)
         {
             // TODO: parallelize & speedup
             // VPAI: we use actual recursive
@@ -292,17 +289,17 @@ namespace Anatawa12.VrcGet
                 // Get the files in the source directory and copy to the destination directory
                 foreach (FileInfo file in dir.GetFiles())
                 {
-                    string targetFilePath = System.IO.Path.Combine(destinationDir, file.Name);
+                    string targetFilePath = Path.Combine(destinationDir, file.Name);
                     file.CopyTo(targetFilePath);
                 }
 
                 // If recursive and copying subdirectories, recursively call this method
 
                 foreach (DirectoryInfo subDir in dirs)
-                    Inner(subDir.FullName, System.IO.Path.Combine(destinationDir, subDir.Name));
+                    Inner(subDir.FullName, Path.Combine(destinationDir, subDir.Name));
             }
 
-            await Task.Run(() => Inner(src_dir.AsString, dst_dir.AsString));
+            await Task.Run(() => Inner(src_dir, dst_dir));
         }
     }
 }
