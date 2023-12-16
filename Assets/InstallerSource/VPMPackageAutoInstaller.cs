@@ -199,6 +199,17 @@ namespace Anatawa12.VpmPackageAutoInstaller
                 return new[] { package.Value };
             }).ToList();
 
+            // If the version of ModularAvatar installed satisfies the requirement, do not update it.
+            // This process is for the FaceEmo installer, so if used for other packages, it may not resolve dependencies correctly.
+            const string modularAvatar = "nadena.dev.modular-avatar";
+            if (unityProject.manifest.locked().TryGetValue(modularAvatar, out var lockedMA) &&
+                config.VpmDependencies.TryGetValue(modularAvatar, out var versionRangeMA) &&
+                versionRangeMA.matches(lockedMA.version, includePrerelease))
+            {
+                dependencies.RemoveAll(x => x.name() == modularAvatar);
+                Debug.Log($"{modularAvatar}@{lockedMA.version} satisfies the requirement in VPAI config ({versionRangeMA}).");
+            }
+
             if (unityIncompatibles.Count != 0)
             {
                 var message = UnityIncompatibleMessage(env, unityIncompatibles, includePrerelease);
