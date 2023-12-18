@@ -286,13 +286,36 @@ namespace Anatawa12.VpmPackageAutoInstaller
             ShowProgress("Prompting to user...", Progress.Prompting);
             if (!IsNoPrompt())
             {
-                var confirmMessage = new StringBuilder(Localization.Confirm_Packages());
+                var confirmMessage = new StringBuilder();
+
+                var adding = new StringBuilder();
+                var updating = new StringBuilder();
 
                 foreach (var (name, version) in 
                          request.locked().Select(x => (Name: x.name(), Version: x.version()))
                              .Concat(request.dependencies().Select(x => (Name: x.name, Version: x.dep.version.as_single_version())))
                              .Distinct())
-                    confirmMessage.Append('\n').Append(name).Append(" version ").Append(version);
+                {
+                    if (unityProject.manifest.locked().ContainsKey(name))
+                    {
+                        updating.Append('\n').Append(name).Append(" version ").Append(unityProject.manifest.locked()[name].version).Append(" -> ").Append(version);
+                    }
+                    else
+                    {
+                        adding.Append('\n').Append(name).Append(" version ").Append(version);
+                    }
+                }
+
+                if (adding.Length > 0)
+                {
+                    confirmMessage.Append(Localization.Confirm_AddPackages()).Append(adding);
+                }
+
+                if (updating.Length > 0)
+                {
+                    if (confirmMessage.Length > 0) { confirmMessage.Append("\n\n"); }
+                    confirmMessage.Append(Localization.Confirm_UpdatePackages()).Append(updating);
+                }
 
                 if (env.PendingRepositories.Count != 0)
                 {

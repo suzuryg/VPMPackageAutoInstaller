@@ -60,14 +60,23 @@ namespace Anatawa12.VpmPackageAutoInstaller
             }
         } 
 
-        public static string Confirm_Packages()
+        public static string Confirm_AddPackages()
         {
             switch (GetLocale())
             {
-                case Locale.ja_JP: return "下記のパッケージがインストールされます：";
-                default: return "You're installing the following packages:";
+                case Locale.ja_JP: return "下記のパッケージが新しくインストールされます：";
+                default: return "You're newly installing the following packages:";
             }
         } 
+
+        public static string Confirm_UpdatePackages()
+        {
+            switch (GetLocale())
+            {
+                case Locale.ja_JP: return "下記のパッケージが更新されます：";
+                default: return "You're updating the following packages:";
+            }
+        }
 
         public static string Confirm_Repositories()
         {
