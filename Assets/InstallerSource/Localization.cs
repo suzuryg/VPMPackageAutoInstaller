@@ -105,6 +105,45 @@ namespace Anatawa12.VpmPackageAutoInstaller
             }
         } 
 
+        public static string IncompatibleWithCurrentUnity()
+        {
+            switch (GetLocale())
+            {
+                case Locale.ja_JP: return "下記のパッケージは、使用中のUnityのバージョンと互換性がありません！";
+                default: return "The following packages are incompatible with current unity!";
+            }
+        } 
+
+        public static string ChangeUnityVersion()
+        {
+            switch (GetLocale())
+            {
+                case Locale.ja_JP: return "パッケージをインストールする前に、Unityのバージョンを変更してください！";
+                default: return "Please change unity version before installing packages!";
+            }
+        } 
+
+        public static string OlderVrcSdkIsRequired()
+        {
+            switch (GetLocale())
+            {
+                case Locale.ja_JP: return "インストール対象のツールはUnity2019用のVRCSDKを必要としていますが、別のバージョンのVRCSDKを使用中のためツールをインストールできません。\n" +
+                        "古いバージョンのVRCSDKを使用するか、ツールのアップデートをお待ちください。";
+                default: return "You're installing tools that require VRCSDK for Unity 2019.x " +
+                           "but you're using other versions of VRCSDK!\n" +
+                           "Please use older VRCSDK or wait for tool updates!";
+            }
+        } 
+
+        public static string UnityUpgradeIsRequired()
+        {
+            switch (GetLocale())
+            {
+                case Locale.ja_JP: return "Unityのアップグレードが必要です！";
+                default: return "Unity upgrade is required!";
+            }
+        } 
+
         public static string Stop()
         {
             switch (GetLocale())

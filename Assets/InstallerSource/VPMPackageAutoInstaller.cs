@@ -264,10 +264,10 @@ namespace Anatawa12.VpmPackageAutoInstaller
 
             if (request.unity_conflicts().Length != 0)
             {
-                var confirmMessage = new StringBuilder("The following packages are incompatible with current unity!\n");
+                var confirmMessage = new StringBuilder(Localization.IncompatibleWithCurrentUnity()).Append("\n");
                 foreach (var conflict in request.unity_conflicts())
                     confirmMessage.Append("- ").Append(conflict).Append("\n");
-                confirmMessage.Append("\nPlease change unity version before installing packages!");
+                confirmMessage.Append("\n").Append(Localization.ChangeUnityVersion());
                 var message = confirmMessage.ToString();
                 // we found some package requires newer version of unity
                 if (!IsNoPrompt())
@@ -375,9 +375,7 @@ namespace Anatawa12.VpmPackageAutoInstaller
                 if (!Application.unityVersion.StartsWith("2019.", StringComparison.Ordinal))
                 {
                     // it's not unity 2019 so the tool looks requires 2019.x SDK but not 2019.x
-                    return "You're installing tools that require VRCSDK for Unity 2019.x " +
-                           "but you're using other versions of VRCSDK!\n" +
-                           "Please use older VRCSDK or wait for tool updates!";
+                    return Localization.OlderVrcSdkIsRequired();
                 }
             }
 
@@ -397,6 +395,7 @@ namespace Anatawa12.VpmPackageAutoInstaller
         }
 
         private static string MinimumUnityVersionMessage(ushort major, byte minor) =>
+            Localization.UnityUpgradeIsRequired() + "\n\n" +
             $"You're installing packages requires unity {major}.{minor} or later! \n" +
             $"Please upgrade your unity to {major}.{minor} or later!";
 
